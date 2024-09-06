@@ -1,0 +1,514 @@
+
+
+
+<!DOCTYPE html>
+<html>
+
+
+	
+<head>
+	<title>Draggable Boxes</title>
+	
+	<style>
+		.container {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				gap: 20px; /* Adjust the gap between the tables */
+		}
+		.box {
+				width: 150px;
+				height: 50px;
+				background-color: lightblue;
+				/* border: 1px solid #ccc; */
+				border-radius: 15px;		/* Forces the border to follow the rounded background */
+				text-align: right;
+				display: table-cell;			/* Forces text to behave like a cell */
+				vertical-align: middle;		/* Vertically center the text */
+				
+				padding: 15px;
+				margin: 10px auto;
+				cursor: move;
+
+		}
+		.draggable {
+				cursor: move;
+		}
+		.droppable {
+				border: 1px solid #ccc;
+				background-color: lightyellow;
+				padding: 10px;
+				height: 70px;
+		}
+		table {
+				position: relative;
+				margin-top: 40px;
+				margin-left: 40px;
+				margin-right: 40px;
+				border-collapse: collapse;
+				table-layout: fixed;
+		}
+		#tableDatabaseFunds {
+				width: 450px;
+		}
+		#tableBankCash {
+				width: 300px;
+		}
+		th {
+			height: 100px;
+			background-color: lightgrey;
+		}
+		th.custom-height {
+			height: 20px;
+			font-size: 22px;
+			background-color: lightblue;
+		}
+		th, td {
+				padding: 10px;
+				border: 1px solid #ccc;
+				text-align: center;
+				vertical-align: middle;		
+				/* The items inside the cell will be aligned, but not the text inside the items */
+		}
+		/* Align .box elements to the right */
+		td .box {
+			display: inline-block;
+			text-align: right;
+			padding-right: 20px;
+			float: right; /* Ensures the box is aligned to the right of the cell */
+		}
+
+
+		
+		th.thForScrollingContainer {
+			display: flex;
+			justify-content: center;  /* Center horizontally */
+			align-items: center;      /* Center vertically */
+			height: 200px;            /* Set a height for this specific table header */
+			padding: 0;               /* Remove padding */
+		}
+		.scrollable-container {
+			width: 170px; /* Adjust width as needed */
+			height: 170px; /* Adjust height as needed */
+			overflow: auto;
+			border: 1px solid purple; /* Optional: border around the viewer */
+		}
+        .scrollable-container img {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            cursor: pointer; /* Change cursor to pointer on hover */
+        }
+
+
+
+
+		
+        /* The Modal (background) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.9); /* Black with opacity */
+        }
+
+		.modal-content-wrapper {
+		    position: relative; /* Create a new stacking context */
+		    overflow: hidden; /* Enable scrolling */
+		    max-width: 100%; /* Prevent the wrapper from exceeding the modal width */
+		    height: 100vh; /* Set the wrapper's height to the viewport height */
+		}
+		.modal-header {
+		    position: absolute; /* Take the header out of the normal document flow */
+		    top: 0;
+		    right: 0;
+		    left: 0;
+		    padding: 10px;
+		    background-color: #333;
+		    color: #fff;
+		    z-index: 1; /* Keep the header on top of the image */
+		}
+		.scroll-container {
+				overflow: auto;
+				width: 100%;
+				height: 100%;
+		}
+		.close {
+				font-size: 40px;
+				margin-right: 10px;
+		}
+
+		.zoom-controls {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-right: 10px;
+		}
+
+		.zoom-in, .zoom-out {
+				background-color: #fff;
+				border: none;
+				padding: 10px 20px;
+				font-size: 24px;
+				cursor: pointer;
+		}
+
+		.close {
+				font-size: 24px; /* Change the font size to match the zoom buttons */
+				background-color: #fff;
+				border: none;
+				padding: 10px 20px;
+				cursor: pointer;
+		}
+
+		.close:hover {
+				background-color: #ccc;
+		}
+
+		
+        /* Modal Content (Image) */
+		
+		.modal-content {
+				width: auto;
+				height: auto;
+				max-width: 100%;
+				max-height: 100vh;
+				transform: scale(1);
+				transition: transform 0.3s;
+		}
+
+        /* THE CONTENT IS NOW ZOOMED */
+        .modal-content.zoomed {
+            cursor: zoom-out;
+            transform: scale(2); 	/* Here is where you control the ZOOMING of the image */
+				}
+
+
+
+		
+        /* Add Animation */
+        .modal-content {
+            -webkit-animation-name: zoom;
+            -webkit-animation-duration:0.8s;
+            animation-name: zoom;
+            animation-duration: 0.8s;
+        }
+
+        @-webkit-keyframes zoom {
+            from {-webkit-transform: scale(0)}
+            to {-webkit-transform: scale(1)}
+        }
+
+        @keyframes zoom {
+            from {transform: scale(0)}
+            to {transform: scale(1)}
+        }
+
+
+	</style>
+
+	
+	<body>
+		<div class="container">
+				<table id="tableDatabaseFunds">
+						<thead>
+							<tr>
+								<th class="custom-height">TOTAL</th>
+								<th class="custom-height">TOTAL</th>
+							</tr>
+							<tr class="custom-height">
+								<th class="custom-height" style="text-align: right">000</th>
+								<th class="custom-height" style="text-align: right">000</th>
+							</tr>
+							<tr>
+									<th>Database fund flows</th>
+									<th>Database fund flows <br> EQUAL <br> Bank cash transactions</th>
+							</tr>
+						</thead>
+						<tbody>
+								<tr>
+										<td class="column">
+												<div class="box">10,620,000</div>
+										</td>
+										<td class="column droppable">
+												<div id="row1"></div>
+										</td>
+								</tr>
+								<tr>
+										<td class="column">
+												<div class="box">2,000</div>
+										</td>
+										<td class="column droppable">
+												<div id="row2"></div>
+										</td>
+								</tr>
+								<tr>
+										<td class="column">
+												<div class="box">18,000</div>
+										</td>
+										<td class="column droppable">
+												<div id="row3"></div>
+										</td>
+								</tr>
+								<tr>
+										<td class="column">
+												<div class="box">-8,888</div>
+										</td>
+										<td class="column droppable">
+												<div id="row4"></div>
+										</td>
+								</tr>
+								<tr>
+										<td class="column">
+												<div class="box"></div>
+										</td>
+										<td class="column droppable">
+												<div id="row5"></div>
+										</td>
+								</tr>
+								<tr>
+										<td class="column">
+
+										</td>
+										<td class="column droppable">
+												<div id="row6"></div>
+										</td>
+								</tr>
+								<tr>
+										<td class="column">
+
+										</td>
+										<td class="column droppable">
+												<div id="row7"></div>
+										</td>
+								</tr>
+								<tr>
+										<td class="column">
+
+										</td>
+										<td class="column droppable">
+												<div id="row8"></div>
+										</td>
+								</tr>
+								<tr>
+										<td class="column">
+
+										</td>
+										<td class="column droppable">
+												<div id="row9"></div>
+										</td>
+								</tr>
+						</tbody>
+				</table>
+
+				<table id="tableBankCash">
+						<thead>
+							<tr>
+									<th>
+										Bank cash transactions <br><br> 
+									</th>
+							</tr>
+
+	            <tr>
+	                <th class="thForScrollingContainer">
+										<div class="scrollable-container">
+											<img src="IMG_001.jpeg" alt="First Image" 
+												onclick="openModal(this)">
+											<img src="IMG_002.webp" alt="Second Image" 
+												onclick="openModal(this)">
+											<img src="IMG_003.jpeg" alt="Third Image" 
+												onclick="openModal(this)">
+										</div>
+	                </th>
+	            </tr>
+
+						<!-- The Modal -->
+						<!-- The Modal -->
+						<!-- The Modal -->							
+							<div id="myModal" class="modal">
+									<div class="modal-header">
+											<div class="zoom-controls">
+													<button class="zoom-out" onclick="zoomOut()">-</button>
+													<button class="zoom-in" onclick="zoomIn()">+</button>
+													<button class="close" onclick="closeModal()">&times;</button>
+											</div>
+									</div>
+									<div class="modal-content-wrapper">
+											<div class="scroll-container">
+													<img class="modal-content" id="img01">
+											</div>
+									</div>
+							</div>
+						<!-- The Modal -->
+						<!-- The Modal -->
+						<!-- The Modal -->
+
+							
+						</thead>
+						<tbody>
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box1" draggable="true">5,000,000</div>
+										</td>
+								</tr>
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box2" draggable="true">5,000,000</div>
+										</td>
+								</tr>
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box3" draggable="true">620,000</div>
+										</td>
+								</tr>
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box4" draggable="true">1,500</div>
+										</td>
+								</tr>
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box5" draggable="true">500</div>
+										</td>
+								</tr>     
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box6" draggable="true">18,000</div>
+										</td>        
+								</tr>      
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box7" draggable="true">775,000</div>
+										</td>
+								</tr>      
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box8" draggable="true">-8,888</div>
+										</td>
+								</tr>      
+								<tr>
+											<td class="column droppable">
+												<div class="box draggable" id="box9" draggable="true"></div>
+										</td>
+								</tr>
+						</tbody>    
+				</table>
+		</div>
+	</body>
+
+	<script>
+	// Make the boxes draggable
+	document.querySelectorAll('.draggable').forEach(box => {
+			box.addEventListener('dragstart', event => {
+					event.dataTransfer.setData('text', box.id);
+			});
+	});
+
+	// Make the middle column droppable
+	document.querySelectorAll('.droppable').forEach((cell, rowIndex) => {
+			cell.addEventListener('dragover', event => {
+					event.preventDefault();
+			});
+			cell.addEventListener('drop', event => {
+					event.preventDefault();
+					const boxId = event.dataTransfer.getData('text');
+					const box = document.getElementById(boxId);
+					cell.appendChild(box);  // Append the box to the droppable cell
+
+					// Update the totals in the second header row
+					updateColumnTotals();
+			});
+	});
+
+	// Function to update column totals in the second header row
+	function updateColumnTotals() {
+			const rows = document.querySelectorAll('#tableDatabaseFunds tbody tr');
+
+			let totalCol1 = 0;
+			let totalCol2 = 0;
+
+			rows.forEach(row => {
+					const col1Boxes = row.querySelectorAll('td:nth-child(1) .box');
+					const col2Boxes = row.querySelectorAll('td:nth-child(2) .box');
+
+					let col1Value = 0;
+					let col2Value = 0;
+
+					// Sum all values in the first column cell
+					col1Boxes.forEach(box => {
+							col1Value += parseNumber(box.textContent);
+					});
+
+					// Sum all values in the second column cell
+					col2Boxes.forEach(box => {
+							col2Value += parseNumber(box.textContent);
+					});
+
+					totalCol1 += col1Value;
+					totalCol2 += col2Value;
+			});
+
+			// Update the second header row with the calculated totals
+			const headerCells = document.querySelectorAll('#tableDatabaseFunds thead tr:nth-child(2) th');
+			headerCells[0].textContent = formatNumber(totalCol1);
+			headerCells[1].textContent = formatNumber(totalCol2);
+	}
+
+	// Helper function to parse number from a string
+	function parseNumber(text) {
+			const num = parseFloat(text.replace(/,/g, ''));
+			return isNaN(num) ? 0 : num;
+	}
+
+	// Helper function to format number with commas
+	function formatNumber(num) {
+			return num.toLocaleString('en-US');
+	}
+
+	// Initial update to ensure correct totals on page load
+	updateColumnTotals();
+
+
+
+
+				var currentScale = 1;
+				
+	      // Open the modal and display the image
+				function openModal(image) {
+				    var modal = document.getElementById("myModal");
+				    var modalImg = document.getElementById("img01");
+				    modal.style.display = "block";
+				    modalImg.src = image.src;
+				    currentScale = 1;
+				}
+
+				function zoomIn() {
+				    currentScale += 0.2;
+				    document.getElementById("img01").style.transform = "scale(" + currentScale + ")";
+				}
+				
+				function zoomOut() {
+				    if (currentScale > 1) {
+				        currentScale -= 0.2;
+				        document.getElementById("img01").style.transform = "scale(" + currentScale + ")";
+				    }
+				}
+
+        // Close the modal
+        function closeModal() {
+            document.getElementById("myModal").style.display = "none";
+        }
+	</script>
+
+
+
+</body>
+
+	
+</html>
